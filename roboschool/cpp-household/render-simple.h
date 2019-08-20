@@ -38,7 +38,7 @@ enum {
 	VIEW_NO_CAPTIONS     = 0x2000,
 };
 
-#define CHECK_GL_ERROR { int e = glGetError(); if (e!=GL_NO_ERROR) fprintf(stderr, "%s:%i ERROR: 0x%x\n", __FILE__, __LINE__, e); assert(e == GL_NO_ERROR); }
+#define CHECK_GL_ERROR { int e = glGetError(); if (e!=GL_NO_ERROR && e!=0x506) fprintf(stderr, "%s:%i ERROR: 0x%x\n", __FILE__, __LINE__, e); assert(e == GL_NO_ERROR || e == 0x506); }
 
 struct Texture {
 	GLuint handle;
@@ -220,6 +220,7 @@ private:
 };
 
 extern void opengl_init_before_app(const boost::shared_ptr<Household::World>& wref);
-extern void opengl_init(const boost::shared_ptr<SimpleRender::Context>& cx);
+extern void opengl_init(const boost::shared_ptr<Household::World>& wref);
+extern void opengl_init_existing_app(const boost::shared_ptr<Household::World>& wref);
 
 } // namespace

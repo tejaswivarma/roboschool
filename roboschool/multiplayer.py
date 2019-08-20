@@ -90,12 +90,10 @@ class SharedMemoryClientEnv:
         else:
             raise ValueError("multiplayer server returned invalid string '%s' on reset, probably was shut down" % check)
 
-    def shmem_client_rgb_array(self, mode, close):
+    def shmem_client_rgb_array(self, mode):
         """
         This can render video image for render("rgb_array"), also works using shared memory.
         """
-        if close:
-            return
         if mode=="rgb_array":
             os.write(self.sh_pipe_actready, b'G\n')
             check = self.sh_pipe_obsready.readline()[:-1]
@@ -115,14 +113,14 @@ class SharedMemoryClientEnv:
         game_server_guid -- is an id that server and client use to identify themselves to belong to the same session.
         player_n -- integer, up to scene.players_count.
 
-        You see here env._reset() gets overwritten, that means if you call env.reset(), it will not create
+        You see here env.reset gets overwritten, that means if you call env.reset(), it will not create
         single player scene on your side (as it usually do), but rather it will communicate to server, reset environment
         there. Same with step() and render().
         """
         self.shmem_client_init(game_server_guid, player_n)
-        env._step   = self.shmem_client_step  # replace real function with fake, that communicates with environment on server
-        env._reset  = self.shmem_client_reset
-        env._render = self.shmem_client_rgb_array
+        env.step   = self.shmem_client_step  # replace real function with fake, that communicates with environment on server
+        env.reset  = self.shmem_client_reset
+        env.render = self.shmem_client_rgb_array
         self.shmem_client_send_env_id()
 
 class SharedMemoryPlayerAgent:

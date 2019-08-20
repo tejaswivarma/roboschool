@@ -665,12 +665,14 @@ void opengl_init_before_app(const boost::shared_ptr<Household::World>& wref)
 	fmt.setVersion(4, 1);
 	QSurfaceFormat::setDefaultFormat(fmt);
 	QApplication::setApplicationDisplayName("Roboschool");
-	wref->cx.reset(new SimpleRender::Context(wref));
-	wref->cx->fmt = fmt;
 }
 
-void opengl_init(const boost::shared_ptr<SimpleRender::Context>& cx)
+void opengl_init(const boost::shared_ptr<Household::World>& wref)
 {
+	boost::shared_ptr<SimpleRender::Context>& cx = wref->cx;
+	cx.reset(new SimpleRender::Context(wref));
+	cx->fmt = QSurfaceFormat::defaultFormat();
+	
 	cx->surf = new QOffscreenSurface();
 	cx->surf->setFormat(cx->fmt);
 	cx->surf->create();
@@ -681,7 +683,7 @@ void opengl_init(const boost::shared_ptr<SimpleRender::Context>& cx)
 		QOpenGLContext* glcx = QOpenGLContext::globalShareContext();
 		QSurfaceFormat fmt_req = cx->fmt;
 		QSurfaceFormat fmt_got = glcx->format();
-		int got_version = fmt_got.majorVersion()*1000 + fmt_got.majorVersion();
+		int got_version = fmt_got.majorVersion()*1000 + fmt_got.minorVersion();
 		bool ok_without_shadows = got_version >= 3003;
 		bool ok_all_features    = got_version >= 4001;
 		if (!ok_without_shadows) {
@@ -714,6 +716,25 @@ void opengl_init(const boost::shared_ptr<SimpleRender::Context>& cx)
 		cx->glcx = glcx;
 		assert(hurray);
 	}
+}
+
+void opengl_init_existing_app(const boost::shared_ptr<Household::World>& wref)
+{
+	wref->cx.reset(new SimpleRender::Context(wref));
+	wref->cx->fmt = QSurfaceFormat::defaultFormat();
+	
+	wref->cx->surf = new QOffscreenSurface();
+	wref->cx->surf->setFormat(wref->cx->fmt);
+	wref->cx->surf->create();
+
+	QOpenGLContext* glcx = QOpenGLContext::globalShareContext();
+	QSurfaceFormat fmt_got = glcx->format();
+	int got_version = fmt_got.majorVersion()*1000 + fmt_got.minorVersion();
+	bool ok_all_features    = got_version >= 4001;
+
+	wref->cx->glcx = glcx;
+	wref->cx->ssao_enable = ok_all_features;
+	wref->cx->glcx->makeCurrent(wref->cx->surf);
 }
 
 } // namespace

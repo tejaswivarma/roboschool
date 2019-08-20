@@ -55,7 +55,7 @@ class RoboschoolForwardWalker(SharedMemoryClientEnv):
         self.body_rpy = body_pose.rpy()
         z = self.body_xyz[2]
         r, p, yaw = self.body_rpy
-        if self.initial_z==None:
+        if self.initial_z is None:
             self.initial_z = z
         self.walk_target_theta = np.arctan2( self.walk_target_y - self.body_xyz[1], self.walk_target_x - self.body_xyz[0] )
         self.walk_target_dist  = np.linalg.norm( [self.walk_target_y - self.body_xyz[1], self.walk_target_x - self.body_xyz[0]] )
@@ -86,8 +86,8 @@ class RoboschoolForwardWalker(SharedMemoryClientEnv):
     foot_ground_object_names = set(["floor"])  # to distinguish ground and other objects
     joints_at_limit_cost = -0.2    # discourage stuck joints
 
-    def _step(self, a):
-        if not self.scene.multiplayer:  # if multiplayer, action first applied to all robots, then global step() called, then _step() for all robots with the same actions
+    def step(self, a):
+        if not self.scene.multiplayer:  # if multiplayer, action first applied to all robots, then global step() called, then step() for all robots with the same actions
             self.apply_action(a)
             self.scene.global_step()
 
@@ -125,7 +125,7 @@ class RoboschoolForwardWalker(SharedMemoryClientEnv):
             ]
 
         self.frame  += 1
-        if (done and not self.done) or self.frame==self.spec.timestep_limit:
+        if (done and not self.done) or self.frame==self.spec.max_episode_steps:
             self.episode_over(self.frame)
         self.done   += done   # 2 == 1+True
         self.reward += sum(self.rewards)
